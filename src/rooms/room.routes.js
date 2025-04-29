@@ -20,9 +20,6 @@ router.post(
 
 router.get(
     '/getRooms',
-    [
-        validateJWT
-    ],
     getRooms
 )
 
@@ -31,7 +28,7 @@ router.get('/availableRooms', roomsAvailable)
 router.get(
     '/:id',
     [
-        validateJWT,
+
         check('id', 'Invalid ID').isMongoId(),
         validateRoom
     ],

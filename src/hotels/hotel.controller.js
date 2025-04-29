@@ -1,4 +1,5 @@
 import Hotel from "./hotel.model.js";
+import Room from "../rooms/room.model.js";
 
 export const saveHotel = async (req, res) => {
     try {
@@ -34,23 +35,35 @@ export const getHotel = async (req, res) => {
             Hotel.find(query)
                 .skip(Number(desde))
                 .limit(Number(limite))
-        ])
+        ]);
+
+        const hotelsWithRooms = await Promise.all(
+            hotels.map(async (hotel) => {
+                const rooms = await Room.find({ hotel: hotel._id })
+                    .select('numberRoom capacity price images'); 
+
+                return {
+                    ...hotel.toObject(),
+                    rooms  
+                };
+            })
+        );
 
         return res.status(200).json({
             success: true,
             msg: "Hotel found successfully",
             total,
-            hotels
-        })
+            hotels: hotelsWithRooms 
+        });
 
     } catch (error) {
         return res.status(500).json({
             success: false,
             msg: "Error getting hotel"
-        })
+        });
     }
-
 }
+
 
 export const updateHotel = async (req, res = response) => {
     try {
