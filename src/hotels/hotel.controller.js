@@ -26,31 +26,45 @@ export const saveHotel = async (req, res) => {
 
 export const getHotel = async (req, res) => {
     try {
-        const { limite = 10, desde = 0 } = req.query;
-        const query = { status: true };
+        const { limite = 10, desde = 0, name, category, address } = req.query;
+
+        const filters = { status: true };
+
+        if (name) {
+            filters.name = { $regex: name, $options: "i" };
+        }
+
+        if (category) {
+            filters.category = { $regex: category, $options: "i" };
+        }
+
+        if (address) {
+            filters.address = { $regex: address, $options: "i" };
+        }
 
         const [total, hotels] = await Promise.all([
-            Hotel.countDocuments(query),
-            Hotel.find(query)
+            Hotel.countDocuments(filters),
+            Hotel.find(filters)
                 .skip(Number(desde))
                 .limit(Number(limite))
-        ])
+        ]);
 
         return res.status(200).json({
             success: true,
-            msg: "Hotel found successfully",
+            msg: "Hotels found successfully",
             total,
             hotels
-        })
+        });
 
     } catch (error) {
         return res.status(500).json({
             success: false,
-            msg: "Error getting hotel"
-        })
+            msg: "Error getting hotels",
+            error: error.message || error
+        });
     }
+};
 
-}
 
 export const updateHotel = async (req, res = response) => {
     try {
