@@ -5,7 +5,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { dbConnection } from './mongo.js';
 import limiter from '../src/middlewares/validate-cant-request.js';
-
+import authRoutes from '../src/user-auth/auth.routes.js'
+import userRoutes from '../src/users/user.routes.js'
+import { createAdmin } from '../src/middlewares/creation-default-admin.js'
+import { createRoles } from '../src/role/role.controller.js'
+ 
 const middlewares = (app) =>{
     app.use(express.urlencoded({extended: false}));
     app.use(express.json());
@@ -14,11 +18,12 @@ const middlewares = (app) =>{
     app.use(morgan('dev'));
     app.use(limiter)
 }
-
+ 
 const routes = (app) =>{
-
+    app.use('/HotelManagement/v1/auth', authRoutes);
+    app.use('/HotelManagement/v1/user', userRoutes);
 }
-
+ 
 const conectarDB = async() =>{
     try {
         await dbConnection();
@@ -27,19 +32,21 @@ const conectarDB = async() =>{
         console.log('Failed to connect to database')
     }
 }
-
+ 
 export const initServer = async() =>{
  const app = express();
- const port = process.env.PORT || 3001;
+ const port = process.env.PORT || 3000;
  try {
      middlewares(app);
-     conectarDB();
+     await conectarDB();
      routes(app);
      app.listen(port);
+     await createAdmin();
+     await createRoles();
      console.log(`server running on port ${port}`)
-    
+   
  } catch (err) {
     console.log(`server init failed: ${err}`)
  }
-
+ 
 }
