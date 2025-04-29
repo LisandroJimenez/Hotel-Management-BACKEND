@@ -19,9 +19,6 @@ const hotelSchema = Schema({
     email: {
         type: String
     },
-    image: {
-        type: String
-    },
     status: {
         type: Boolean,
         default: true
