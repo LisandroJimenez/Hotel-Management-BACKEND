@@ -92,3 +92,25 @@ export const getEvents = async (req, res) => {
     }
 }
 
+export const updateEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { _id, ...data } = req.body;
+
+        const updatedEvent = await Event.findByIdAndUpdate(id, data, { new: true});
+
+        res.status(200).json({
+            success: true,
+            msg: 'Event updated successfully',
+            event: updatedEvent
+        })
+
+    }catch(error){
+        return res.status(500).json({
+            success: false,
+            msg: 'Error updating event',
+            error: error.msg
+        })
+    }
+}
+
