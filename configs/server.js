@@ -8,6 +8,7 @@ import limiter from '../src/middlewares/validate-cant-request.js';
 import authRoutes from '../src/user-auth/auth.routes.js'
 import userRoutes from '../src/users/user.routes.js'
 import hotelRoutes from '../src/hotels/hotel.routes.js'
+import roomRoutes from '../src/rooms/room.routes.js';
 import { createAdmin } from '../src/middlewares/creation-default-admin.js'
 import { createRoles } from '../src/role/role.controller.js'
  
@@ -24,6 +25,7 @@ const routes = (app) =>{
     app.use('/HotelManagement/v1/auth', authRoutes);
     app.use('/HotelManagement/v1/user', userRoutes);
     app.use('/HotelManagement/v1/hotel', hotelRoutes);
+    app.use('/HotelManagement/v1/room', roomRoutes);
 }
  
 const conectarDB = async() =>{
