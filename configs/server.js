@@ -7,6 +7,7 @@ import { dbConnection } from './mongo.js';
 import limiter from '../src/middlewares/validate-cant-request.js';
 import authRoutes from '../src/user-auth/auth.routes.js'
 import userRoutes from '../src/users/user.routes.js'
+import hotelRoutes from '../src/hotels/hotel.routes.js'
 import { createAdmin } from '../src/middlewares/creation-default-admin.js'
 import { createRoles } from '../src/role/role.controller.js'
  
@@ -22,6 +23,7 @@ const middlewares = (app) =>{
 const routes = (app) =>{
     app.use('/HotelManagement/v1/auth', authRoutes);
     app.use('/HotelManagement/v1/user', userRoutes);
+    app.use('/HotelManagement/v1/hotel', hotelRoutes);
 }
  
 const conectarDB = async() =>{

@@ -1,5 +1,6 @@
 import User from '../users/user.model.js'
 import Role from '../role/role.model.js';
+import Hotel from '../hotels/hotel.model.js'
 
 
 export const validRole = async(role = '') => {
@@ -25,3 +26,9 @@ export const existUserById = async(id = ``)=>{
     }
 }
 
+export const existHotelById = async(id = ``)=>{
+    const existHotel = await Hotel.findById(id);
+    if (!existHotel) {
+        throw new Error(`ID  ${id} does not exist in the database`)
+    }
+}
