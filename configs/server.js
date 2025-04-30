@@ -10,6 +10,7 @@ import userRoutes from '../src/users/user.routes.js'
 import hotelRoutes from '../src/hotels/hotel.routes.js'
 import roomRoutes from '../src/rooms/room.routes.js';
 import reservationRoutes from '../src/reservations/reservation.routes.js'
+import invoiceRoutes from '../src/invoices/invoice.routes.js';
 import { createAdmin } from '../src/middlewares/creation-default-admin.js'
 import { createRoles } from '../src/role/role.controller.js'
  
@@ -28,6 +29,7 @@ const routes = (app) =>{
     app.use('/HotelManagement/v1/hotel', hotelRoutes);
     app.use('/HotelManagement/v1/room', roomRoutes);
     app.use('/HotelManagement/v1/reservation', reservationRoutes);
+    app.use('/HotelManagement/v1/invoice', invoiceRoutes);
 }
  
 const conectarDB = async() =>{
