@@ -4,50 +4,21 @@ import Room from '../rooms/room.model.js'
 // Crear evento
 export const saveEvent = async (req, res) => {
     try {
-        const { room, date } = req.body;
+        const data = req.body;
 
-        const roomData = await Room.findById(room);
-        if (!roomData) {
-            return res.status(404).json({
-                success: false,
-                msg: "La sala no existe"
-            });
-        }
+        const event = new Event({
+            ...data
+        })
 
-        if (roomData.statusRoom !== "AVAILABLE") {
-            return res.status(400).json({
-                success: false,
-                msg: "La sala no está disponible"
-            });
-        }
-
-        const eventDate = new Date(date);
-        if (eventDate < new Date()) {
-            return res.status(400).json({
-                success: false,
-                msg: "La fecha del evento debe ser futura"
-            });
-        }
-
-        const existingEvent = await Event.findOne({ 
-            room: room, 
-            date: { $gte: eventDate, $lt: new Date(eventDate.getTime() + 60 * 60 * 1000) } // Verifica si hay un evento en la misma hora
-        });
-
-        if (existingEvent) {
-            return res.status(400).json({
-                success: false,
-                msg: "Ya existe un evento en esta sala para la misma fecha"
-            });
-        }
-
-        const event = new Event({ room, date: eventDate });
-        await event.save();
+        await event.save()
 
         return res.status(200).json({
             success: true,
             msg: "Evento creado correctamente",
-            event
+            event: {
+                ...event.toObject(),
+                date: event.date.toISOString().split('T')[0] // solo YYYY-MM-DD
+            }
         });
 
     } catch (error) {
@@ -72,7 +43,7 @@ export const getEvents = async (req, res) => {
             const room = await Room.findById(event.room);
             return {
                 ...event.toObject(),
-                room: room ? { id: room.id, description: room.description} : 'Data not found'
+                room: room ? { id: room.id, description: room.description, statusRoom: room.statusRoom} : 'Data not found'
             }
         }))
 
@@ -110,6 +81,24 @@ export const updateEvent = async (req, res) => {
             success: false,
             msg: 'Error updating event',
             error: error.msg
+        })
+    }
+}
+
+export const deleteEvent = async (req, res) => {
+    const { id } = req.params;
+    try{
+        await Event.findByIdAndUpdate(id, { status: false});
+        return res.status(200).json({
+            success: true,
+            msg: 'Event deleted successfully'
+        })
+
+    }catch(error){
+        return res.status(500).json({
+            success: false,
+            message: 'Error deleting room',
+            error: error.message
         })
     }
 }
