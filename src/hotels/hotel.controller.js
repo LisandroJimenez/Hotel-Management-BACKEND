@@ -1,5 +1,6 @@
 import Hotel from "./hotel.model.js";
 import Room from "../rooms/room.model.js";
+import Reservation from "../reservations/reservation.model.js"
 
 export const saveHotel = async (req, res) => {
     try {
@@ -135,3 +136,46 @@ export const deleteHotel = async (req, res) => {
         })
     }
 }
+
+//
+export const getHotelesMasReservados = async (req, res) => {
+    try {
+        const agregacion = await Reservation.aggregate([
+            { $match: { status: true } },
+            {
+                $lookup: {
+                    from: 'rooms',
+                    localField: 'room',
+                    foreignField: '_id',
+                    as: 'roomData'
+                }
+            },
+            { $unwind: '$roomData' },
+            {
+                $group: {
+                    _id: '$roomData.hotel',
+                    totalReservas: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'hotels',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'hotel'
+                }
+            },
+            { $unwind: '$hotel' },
+            { $sort: { totalReservas: -1 } },
+            { $limit: 5 }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            msg: 'Hoteles más reservados obtenidos',
+            MoreReservation: agregacion
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, msg: 'Error en estadística', error: error.message });
+    }
+};

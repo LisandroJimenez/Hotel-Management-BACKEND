@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { check } from "express-validator";
 import { deleteUser, getUsers, updateUser } from "./user.controller.js";
+import { getUsuariosPorMes } from "./user.controller.js";
 import { existUserById } from "../helpers/db-validator.js";
 import { validateFields } from "../middlewares/validate-fields.js";
 import { validateJWT } from "../middlewares/validate-jwt.js";
@@ -35,5 +36,7 @@ router.delete(
     ],
     deleteUser
 )
+
+router.get("/forMonth", getUsuariosPorMes)
 
 export default router;

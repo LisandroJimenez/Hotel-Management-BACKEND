@@ -2,6 +2,7 @@ import { Router } from "express";
 import { check } from "express-validator";
 import { validateFields } from "../middlewares/validate-fields.js";
 import { saveHotel, getHotel, deleteHotel, updateHotel } from "./hotel.controller.js";
+import { getHotelesMasReservados } from "./hotel.controller.js";
 import { existHotelById } from "../helpers/db-validator.js";
 import { validateJWT } from "../middlewares/validate-jwt.js";
 import { validateAdmin } from "../middlewares/validate-user.js";
@@ -43,5 +44,7 @@ router.delete(
     ],
     deleteHotel
 )
+
+router.get("/moreR", getHotelesMasReservados)
 
 export default router;
