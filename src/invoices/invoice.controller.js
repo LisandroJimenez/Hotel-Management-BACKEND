@@ -1,16 +1,18 @@
 import Invoice from './invoice.model.js';
+import Services from '../Services/services.model.js';
 
 export const generateInvoice = async (req, res) => {
     try {
-
-        const { services = [] } = req.body;
+        const { serviceIds = [] } = req.body; // ← ahora son solo IDs
         const { reservation, room, hotel, days } = req;
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
 
-        const servicesTotal = services.reduce((sum, service) => sum + parseFloat(service.price), 0);
+        // Buscar los servicios reales desde la BD
+        const services = await Services.find({ _id: { $in: serviceIds }, status: true });
 
+        const servicesTotal = services.reduce((sum, service) => sum + parseFloat(service.price.toString()), 0);
         const total = roomTotal + servicesTotal;
 
         const invoice = new Invoice({
@@ -21,7 +23,7 @@ export const generateInvoice = async (req, res) => {
             services,
             total,
             statusInvoice: 'PENDING'
-        })
+        });
 
         await invoice.save();
 
@@ -29,16 +31,17 @@ export const generateInvoice = async (req, res) => {
             success: true,
             msg: 'Invoice generated successfully',
             invoice
-        })
+        });
 
     } catch (error) {
         res.status(500).json({
             success: false,
             msg: 'Error generating invoice',
             error: error.message
-        })
+        });
     }
-}
+};
+
 
 export const paidInvoice = async (req, res) => {
     try {

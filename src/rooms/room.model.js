@@ -46,6 +46,10 @@ const RoomSchema = Schema({
     status: {
         type: Boolean,
         default: true
+    },
+    amenities: {
+        type: [String],  
+        default: []
     }
 },
     {
