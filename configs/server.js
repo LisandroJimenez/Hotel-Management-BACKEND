@@ -31,7 +31,7 @@ const routes = (app) =>{
     app.use('/HotelManagement/v1/room', roomRoutes);
     app.use('/HotelManagement/v1/reservation', reservationRoutes);
     app.use('/HotelManagement/v1/invoice', invoiceRoutes);
-    app.use('/HotelManagement/v1/event', eventRoutes);
+
 }
  
 const conectarDB = async() =>{
