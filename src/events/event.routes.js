@@ -14,7 +14,6 @@ router.post(
         validateJWT,
         hasRole('ADMIN_ROLE'),
         validateEventDate,
-        validateRoom,
         validateEventConflict
     ],
     saveEvent

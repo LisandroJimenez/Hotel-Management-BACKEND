@@ -1,5 +1,5 @@
 import Event from './event.model.js'
-import Room from '../rooms/room.model.js'
+import Hotel from '../hotels/hotel.model.js';
 
 // Crear evento
 export const saveEvent = async (req, res) => {
@@ -39,11 +39,11 @@ export const getEvents = async (req, res) => {
         .skip(Number(offset))
         .limit(Number(limit))
 
-        const eventWithRooms = await Promise.all(events.map(async (event) => {
-            const room = await Room.findById(event.room);
+        const eventWithHotel = await Promise.all(events.map(async (event) => {
+            const hotel = await Hotel.findById(event.hotel);
             return {
                 ...event.toObject(),
-                room: room ? { id: room.id, description: room.description, statusRoom: room.statusRoom} : 'Data not found'
+                hotel: hotel ? { HotelName: hotel.name} : 'Data not found'
             }
         }))
 
@@ -52,7 +52,7 @@ export const getEvents = async (req, res) => {
         res.status(200).json({
             success: true,
             total,
-            events: eventWithRooms
+            hotel: eventWithHotel
         })
     }catch(error){
         return res.status(500).json({

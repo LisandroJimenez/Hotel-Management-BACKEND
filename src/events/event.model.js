@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
 
 const eventSchema = Schema({
-    room: {
+    hotel: {
         type: Schema.Types.ObjectId,
-        ref: 'room',
+        ref: 'hotel',
         required: true
     },
     date: {
@@ -15,6 +15,10 @@ const eventSchema = Schema({
             },
             message: 'La fecha del evento debe ser futura.'
         }
+    },
+    description:{
+        type: String,
+        required: true
     },
     status: {
         type: Boolean,
