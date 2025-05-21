@@ -30,10 +30,14 @@ export const saveReservation = async (req, res) => {
 
         await reservation.save();
 
+        const populatedReservation = await Reservation.findById(reservation._id)
+            .populate('room')
+            .populate('user');
+
         res.status(200).json({
             success: true,
             msg: 'Reservation added successfully',
-            reservation
+            reservation: populatedReservation
         });
     } catch (error) {
         res.status(500).json({
@@ -43,7 +47,6 @@ export const saveReservation = async (req, res) => {
         });
     }
 };
-
 
 export const getReservation = async (req, res) => {
     const { limit = 10, desde = 0 } = req.query;
