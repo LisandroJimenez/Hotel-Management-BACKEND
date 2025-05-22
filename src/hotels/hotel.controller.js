@@ -54,11 +54,11 @@ export const getHotel = async (req, res) => {
         const hotelsWithRooms = await Promise.all(
             hotels.map(async (hotel) => {
                 const rooms = await Room.find({ hotel: hotel._id })
-                    .select('numberRoom capacity price images'); 
+                    .select('numberRoom capacity price images');
 
                 return {
                     ...hotel.toObject(),
-                    rooms  
+                    rooms
                 };
             })
         );
@@ -68,7 +68,7 @@ export const getHotel = async (req, res) => {
             success: true,
             msg: "Hotels found successfully",
             total,
-            hotels: hotelsWithRooms 
+            hotels: hotelsWithRooms
 
         });
 
@@ -177,5 +177,46 @@ export const getHotelesMasReservados = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, msg: 'Error en estadística', error: error.message });
+    }
+};
+export const getHotelById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const hotel = await Hotel.findById(id);
+
+        if (!hotel) {
+            return res.status(404).json({
+                success: false,
+                msg: "Hotel not found with the provided ID."
+            });
+        }
+
+        const rooms = await Room.find({ hotel: hotel._id })
+            .select('numberRoom capacity price images');
+
+        const hotelWithRooms = {
+            ...hotel.toObject(),
+            rooms
+        };
+
+        res.status(200).json({
+            success: true,
+            msg: "Hotel details fetched successfully",
+            hotel: hotelWithRooms
+        });
+
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                success: false,
+                msg: "Invalid Hotel ID format."
+            });
+        }
+        return res.status(500).json({
+            success: false,
+            msg: "Error fetching hotel details from the server.",
+            error: error.message
+        });
     }
 };
