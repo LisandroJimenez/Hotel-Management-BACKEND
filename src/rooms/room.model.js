@@ -50,6 +50,11 @@ const RoomSchema = Schema({
     amenities: {
         type: [String],  
         default: []
+    },
+    type: {
+        type: String,
+        enum: ["Habitacion", "Salon"],
+        required: true
     }
 },
     {

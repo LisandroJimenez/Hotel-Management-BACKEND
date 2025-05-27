@@ -1,24 +1,31 @@
 import Event from './event.model.js'
 import Hotel from '../hotels/hotel.model.js';
+import Room from '../rooms/room.model.js';
 
-// Crear evento
 export const saveEvent = async (req, res) => {
     try {
         const data = req.body;
 
-        const event = new Event({
-            ...data
-        })
+        console.log(data);
+        
 
-        await event.save()
+        const event = new Event({ ...data });
+        await event.save();
+
+        const hotel = await Hotel.findById(event.hotel);
+        const room = await Room.findById(event.room);
+
+        const eventWithDetails = {
+            ...event.toObject(),
+            hotel: hotel ? { HotelName: hotel.name } : 'Data not found',
+            room: room ? { NumberRoom: room.numberRoom } : 'Data not found',
+            date: event.date.toISOString().split('T')[0]
+        };
 
         return res.status(200).json({
             success: true,
             msg: "Evento creado correctamente",
-            event: {
-                ...event.toObject(),
-                date: event.date.toISOString().split('T')[0] // solo YYYY-MM-DD
-            }
+            event: eventWithDetails
         });
 
     } catch (error) {
@@ -29,6 +36,7 @@ export const saveEvent = async (req, res) => {
         });
     }
 };
+
 
 export const getEvents = async (req, res) => {
     const { limit = 10, offset = 0 } = req.query;
@@ -41,9 +49,11 @@ export const getEvents = async (req, res) => {
 
         const eventWithHotel = await Promise.all(events.map(async (event) => {
             const hotel = await Hotel.findById(event.hotel);
+            const room = await Room.findById(event.room);
             return {
                 ...event.toObject(),
-                hotel: hotel ? { HotelName: hotel.name} : 'Data not found'
+                hotel: hotel ? { HotelName: hotel.name} : 'Data not found',
+                room: room ? { NumberRoom: room.numberRoom } : 'Data not found'
             }
         }))
 
