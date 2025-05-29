@@ -4,7 +4,7 @@ import { validateJWT } from '../middlewares/validate-jwt.js';
 import { hasRole } from '../middlewares/validate-role.js';
 import { validateHotel } from '../middlewares/validate-hotel.js';
 import { validateRoom } from '../middlewares/validate-room.js';
-import { createRoom, getRooms, searchRoom, updateRoom, deleteRoom, roomsAvailable } from './room.controller.js';
+import { createRoom, getRooms, searchRoom, updateRoom, deleteRoom, roomsAvailable, getARoomCount } from './room.controller.js';
 
 const router = Router();
 
@@ -21,6 +21,11 @@ router.post(
 router.get(
     '/getRooms',
     getRooms
+)
+
+router.get(
+    '/getRoomsA',
+    getARoomCount
 )
 
 router.get('/availableRooms', roomsAvailable)

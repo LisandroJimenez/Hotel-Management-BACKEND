@@ -151,3 +151,85 @@ export const updateReservation = async (req, res) => {
         });
     }
 };
+
+export const ReservationsToday = async (req, res) => {
+    try {
+        const now = new Date();
+
+        // Inicio del mes (día 1 a las 00:00:00)
+        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+
+        // Fin del mes (último día del mes a las 23:59:59.999)
+        const endOfMonth = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth() + 1, // mes siguiente
+            0, // día 0 del mes siguiente = último día del mes actual
+            23, 59, 59, 999
+        ));
+
+        const count = await Reservation.countDocuments({
+            createdAt: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+            },
+            status: true
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Cantidad de reservaciones hechas este mes',
+            reservationsThisMonth: count
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error obteniendo la cantidad de reservaciones este mes',
+            error: error.message
+        });
+    }
+};
+
+export const getMonthlyStats = async (req, res) => {
+    try {
+        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+        const endOfYear = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59, 999);
+
+        const monthlyReservations = await Reservation.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startOfYear, $lte: endOfYear },
+                    status: true
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    total: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        // Inicializamos un array con 12 valores (uno por mes)
+        const fullYearData = Array(12).fill(0);
+        monthlyReservations.forEach(entry => {
+            fullYearData[entry._id - 1] = entry.total;
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Reservaciones por mes del año actual",
+            reservationsPerMonth: fullYearData
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error obteniendo reservaciones por mes",
+            error: error.message
+        });
+    }
+};

@@ -99,3 +99,73 @@ export const getInvoices = async (req, res) => {
         })
     }
 }
+
+
+export const getTotalIncome = async (req, res) => {
+    try {
+        const filter = { status: true, statusInvoice: 'PAID' };
+
+        const invoices = await Invoice.find(filter).select('total');
+
+        const totalIncome = invoices.reduce((sum, invoice) => {
+            return sum + parseFloat(invoice.total.toString());
+        }, 0);
+
+        res.status(200).json({
+            success: true,
+            msg: 'Total income calculated successfully',
+            totalIncome
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            msg: 'Error calculating total income',
+            error: error.message
+        });
+    }
+};
+
+export const getMontlyIncome = async (req, res) => {
+    try {
+        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+        const endOfYear = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59, 999);
+
+        const monthlyIncome = await Invoice.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startOfYear, $lte: endOfYear },
+                    status: true,
+                    statusInvoice: 'PAID'
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    total: { $sum: "$total" }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        const fullYearIncome = Array(12).fill(0);
+        monthlyIncome.forEach(entry => {
+            fullYearIncome[entry._id - 1] = parseFloat(entry.total.toString());
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Ingresos por mes del año actual",
+            incomePerMonth: fullYearIncome
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error obteniendo ingresos por mes",
+            error: error.message
+        });
+    }
+};

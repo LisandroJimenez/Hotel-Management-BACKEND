@@ -160,3 +160,22 @@ export const roomsAvailable = async (req, res) => {
         })
     }
 }
+
+export const getARoomCount = async (req, res) => {
+    try {
+        const count = await Room.countDocuments({ status: true, statusRoom: 'AVAILABLE' });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Cantidad de habitaciones disponibles obtenida exitosamente',
+            availableRooms: count
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error al obtener la cantidad de habitaciones disponibles',
+            error: error.message
+        });
+    }
+};
