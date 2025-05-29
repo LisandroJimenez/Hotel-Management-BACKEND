@@ -15,17 +15,24 @@ import servicesRoutes from '../src/Services/services.routes.js'
 import eventRoutes from '../src/events/event.routes.js';
 import { createAdmin } from '../src/middlewares/creation-default-admin.js'
 import { createRoles } from '../src/role/role.controller.js'
- 
-const middlewares = (app) =>{
-    app.use(express.urlencoded({extended: false}));
+import path from 'path'
+
+const middlewares = (app) => {
+    app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
     app.use(cors());
-    app.use(helmet());
+    // Modifica la configuración de Helmet aquí
+    app.use(helmet({
+        crossOriginEmbedderPolicy: false, // <-- Añade esta línea
+        // También podrías necesitar esto si tienes problemas con las imágenes de perfil o similares
+        crossOriginResourcePolicy: { policy: 'cross-origin' }
+    }));
     app.use(morgan('dev'));
-    app.use(limiter)
+    app.use(limiter); // Asegúrate de que esto sea un punto y coma, no una coma
+    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 }
- 
-const routes = (app) =>{
+
+const routes = (app) => {
     app.use('/HotelManagement/v1/auth', authRoutes);
     app.use('/HotelManagement/v1/user', userRoutes);
     app.use('/HotelManagement/v1/hotel', hotelRoutes);
@@ -36,8 +43,8 @@ const routes = (app) =>{
     app.use('/HotelManagement/v1/invoice', invoiceRoutes);
 
 }
- 
-const conectarDB = async() =>{
+
+const conectarDB = async () => {
     try {
         await dbConnection();
         console.log('Successful connection to the database')
@@ -45,21 +52,21 @@ const conectarDB = async() =>{
         console.log('Failed to connect to database')
     }
 }
- 
-export const initServer = async() =>{
- const app = express();
- const port = process.env.PORT || 3000;
- try {
-     middlewares(app);
-     await conectarDB();
-     routes(app);
-     app.listen(port);
-     await createAdmin();
-     await createRoles();
-     console.log(`server running on port ${port}`)
-   
- } catch (err) {
-    console.log(`server init failed: ${err}`)
- }
- 
+
+export const initServer = async () => {
+    const app = express();
+    const port = process.env.PORT || 3000;
+    try {
+        middlewares(app);
+        await conectarDB();
+        routes(app);
+        app.listen(port);
+        await createAdmin();
+        await createRoles();
+        console.log(`server running on port ${port}`)
+
+    } catch (err) {
+        console.log(`server init failed: ${err}`)
+    }
+
 }

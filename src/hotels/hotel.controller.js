@@ -3,28 +3,30 @@ import Room from "../rooms/room.model.js";
 import Reservation from "../reservations/reservation.model.js"
 
 export const saveHotel = async (req, res) => {
-    try {
-        const data = req.body;
+  try {
+    const data = req.body;
+    const images = req.files ? req.files.map(file => `/uploads/hotels/${file.filename}`) : [];
 
-        const hotel = new Hotel({
-            ...data
-        });
+    const hotel = new Hotel({
+      ...data,
+      images  
+    });
 
-        await hotel.save();
+    await hotel.save();
 
-        res.status(200).json({
-            success: true,
-            msg: "Hotel added successfully",
-            hotel
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            msg: "Error saving hotel"
-        })
+    res.status(200).json({
+      success: true,
+      msg: "Hotel added successfully",
+      hotel
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      msg: "Error saving hotel"
+    });
+  }
+};
 
-    }
-}
 
 export const getHotel = async (req, res) => {
     try {

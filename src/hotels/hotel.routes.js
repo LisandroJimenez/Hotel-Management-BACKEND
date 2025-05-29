@@ -6,6 +6,7 @@ import { getHotelesMasReservados } from "./hotel.controller.js";
 import { existHotelById } from "../helpers/db-validator.js";
 import { validateJWT } from "../middlewares/validate-jwt.js";
 import { validateAdmin } from "../middlewares/validate-user.js";
+import uploadHotelImages from "../middlewares/uploadHotelImages.js";
 
 const router = Router()
 
@@ -14,6 +15,7 @@ router.post(
     [
         validateJWT,
         validateAdmin,
+        uploadHotelImages.array('images'),
         validateFields
     ],
     saveHotel

@@ -23,8 +23,7 @@ const InvoiceSchema = Schema({
     },
     services: [
         {
-            name: String,
-            price: Schema.Types.Decimal128,
+            type: Schema.Types.ObjectId
         }
     ],
     total: {

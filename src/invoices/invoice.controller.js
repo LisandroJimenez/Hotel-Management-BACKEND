@@ -1,26 +1,50 @@
 import Invoice from './invoice.model.js';
 import Services from '../Services/services.model.js';
+import mongoose from 'mongoose';
+
 
 export const generateInvoice = async (req, res) => {
     try {
-        const { serviceIds = [] } = req.body; // ← ahora son solo IDs
+        const { serviceIds = [] } = req.body;
         const { reservation, room, hotel, days } = req;
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
 
-        // Buscar los servicios reales desde la BD
-        const services = await Services.find({ _id: { $in: serviceIds }, status: true });
+        // Paso 1: contar repeticiones
+        const serviceCount = {};
+        for (const id of serviceIds) {
+            serviceCount[id] = (serviceCount[id] || 0) + 1;
+        }
 
-        const servicesTotal = services.reduce((sum, service) => sum + parseFloat(service.price.toString()), 0);
+        // Paso 2: buscar los servicios únicos
+        const uniqueServiceIds = [...new Set(serviceIds)];
+        const foundServices = await Services.find({
+            _id: { $in: uniqueServiceIds },
+            status: true
+        });
+
+        // Paso 3: calcular total considerando repeticiones
+        let servicesTotal = 0;
+        for (const service of foundServices) {
+            const count = serviceCount[service._id.toString()];
+            servicesTotal += parseFloat(service.price.toString()) * count;
+        }
+
         const total = roomTotal + servicesTotal;
+
+        // Paso 4: repetir los ObjectId según la cantidad
+        const expandedServices = [];
+        for (const id of serviceIds) {
+            expandedServices.push(new mongoose.Types.ObjectId(id));
+        }
 
         const invoice = new Invoice({
             reservation: reservation._id,
             user: reservation.user._id,
             hotel: hotel._id,
             room: room._id,
-            services,
+            services: expandedServices,
             total,
             statusInvoice: 'PENDING'
         });

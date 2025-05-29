@@ -23,6 +23,11 @@ const hotelSchema = Schema({
         type: Boolean,
         default: true
     },
+    images: [
+        {
+            type: String 
+        }
+    ]
 },
     {
         timestamps: true,
