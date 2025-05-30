@@ -9,7 +9,7 @@ import { createRoom, getRooms, searchRoom, updateRoom, deleteRoom, roomsAvailabl
 const router = Router();
 
 router.post(
-    '/createRoom',
+    '/',
     [
         validateJWT,
         validateHotel,
@@ -36,7 +36,7 @@ router.get(
 )
 
 router.put(
-    '/updateRoom/:id',
+    '/:id',
     [
         validateJWT,
         check('id', 'Invalid ID').isMongoId(),
@@ -47,7 +47,7 @@ router.put(
 )
 
 router.delete(
-    '/deleteRoom/:id',
+    '/:id',
     [
         validateJWT,
         check('id', 'Invalid ID').isMongoId(),
