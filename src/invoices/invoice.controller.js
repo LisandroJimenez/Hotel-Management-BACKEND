@@ -1,14 +1,20 @@
 import Invoice from './invoice.model.js';
 import Services from '../Services/services.model.js';
+import mongoose from 'mongoose';
 
 export const generateInvoice = async (req, res) => {
     try {
-        const { reservation, room, hotel, days } = req;
+        const { reservation, room, hotel } = req;
+
+        // Calcular días entre fechas
+        const start = new Date(reservation.initDate);
+        const end = new Date(reservation.endDate);
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
 
-        // Cargar los servicios referenciados en la reservación
+        // Cargar los servicios
         await reservation.populate('services');
 
         const servicesTotal = reservation.services.reduce(
@@ -23,8 +29,8 @@ export const generateInvoice = async (req, res) => {
             user: reservation.user._id,
             hotel: hotel._id,
             room: room._id,
-            services: reservation.services.map(s => s._id), // Guardamos los IDs
-            total,
+            services: reservation.services.map(s => s._id),
+            total: mongoose.Types.Decimal128.fromString(total.toFixed(2)), // ← aquí el cambio importante
             statusInvoice: 'PENDING'
         });
 
