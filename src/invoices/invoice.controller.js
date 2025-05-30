@@ -2,34 +2,25 @@ import Invoice from './invoice.model.js';
 import Services from '../Services/services.model.js';
 import mongoose from 'mongoose';
 
-
 export const generateInvoice = async (req, res) => {
     try {
-        const { serviceIds = [] } = req.body;
-        const { reservation, room, hotel, days } = req;
+        const { reservation, room, hotel } = req;
+
+        // Calcular días entre fechas
+        const start = new Date(reservation.initDate);
+        const end = new Date(reservation.endDate);
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
 
-        // Paso 1: contar repeticiones
-        const serviceCount = {};
-        for (const id of serviceIds) {
-            serviceCount[id] = (serviceCount[id] || 0) + 1;
-        }
+        // Cargar los servicios
+        await reservation.populate('services');
 
-        // Paso 2: buscar los servicios únicos
-        const uniqueServiceIds = [...new Set(serviceIds)];
-        const foundServices = await Services.find({
-            _id: { $in: uniqueServiceIds },
-            status: true
-        });
-
-        // Paso 3: calcular total considerando repeticiones
-        let servicesTotal = 0;
-        for (const service of foundServices) {
-            const count = serviceCount[service._id.toString()];
-            servicesTotal += parseFloat(service.price.toString()) * count;
-        }
+        const servicesTotal = reservation.services.reduce(
+            (sum, service) => sum + parseFloat(service.price.toString()), 
+            0
+        );
 
         const total = roomTotal + servicesTotal;
 
@@ -44,8 +35,8 @@ export const generateInvoice = async (req, res) => {
             user: reservation.user._id,
             hotel: hotel._id,
             room: room._id,
-            services: expandedServices,
-            total,
+            services: reservation.services.map(s => s._id),
+            total: mongoose.Types.Decimal128.fromString(total.toFixed(2)), // ← aquí el cambio importante
             statusInvoice: 'PENDING'
         });
 
@@ -53,18 +44,19 @@ export const generateInvoice = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            msg: 'Invoice generated successfully',
+            msg: 'Factura generada correctamente',
             invoice
         });
 
     } catch (error) {
         res.status(500).json({
             success: false,
-            msg: 'Error generating invoice',
+            msg: 'Error al generar la factura',
             error: error.message
         });
     }
 };
+
 
 
 export const paidInvoice = async (req, res) => {

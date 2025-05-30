@@ -1,6 +1,7 @@
 import { response } from "express";
 import { hash } from 'argon2';
 import User from "./user.model.js";
+import Invoice from '../invoices/invoice.model.js';
 
 export const getUsers = async (req = request, res = response) => {
     try {
@@ -129,6 +130,33 @@ export const getUserProfile = (req, res) => {
         res.status(500).json({
             success: false,
             msg: "Error al obtener el perfil del usuario"
+        })
+    }
+}
+
+export const getInvoicesByUser = async (req, res) => {
+    try {
+        
+        const userId = req.usuario._id; 
+        
+        const invoices = await Invoice.find({ user: userId })
+            .populate('reservation', 'initDate endDate')
+            .populate('hotel', 'name')
+            .populate('room', 'numberRoom price')
+            .populate('services', 'name price')
+
+        res.status(200).json({
+            success: true,
+            msg: 'Invoices retrieved successfully',
+            total: invoices.length,
+            invoices
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            msg: 'Error getting user invoices',
+            error: error.message
         })
     }
 }

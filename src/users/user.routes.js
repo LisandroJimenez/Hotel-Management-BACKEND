@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { check } from "express-validator";
-import { deleteUser, getUsers, updateUser, getUserProfile } from "./user.controller.js";
+import { deleteUser, getUsers, updateUser, getUserProfile, getInvoicesByUser } from "./user.controller.js";
 import { getUsuariosPorMes } from "./user.controller.js";
 import { existUserById } from "../helpers/db-validator.js";
 import { validateFields } from "../middlewares/validate-fields.js";
@@ -39,6 +39,13 @@ router.delete(
 
 router.get("/forMonth", getUsuariosPorMes)
 
+router.get(
+    '/myinvoices',
+    [
+        validateJWT,
+    ],
+    getInvoicesByUser
+)
 
 router.get(
     '/profile',

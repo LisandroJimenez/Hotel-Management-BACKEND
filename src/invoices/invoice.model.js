@@ -21,11 +21,11 @@ const InvoiceSchema = Schema({
         ref: 'Room',
         required: true
     },
-    services: [
-        {
-            type: Schema.Types.ObjectId
-        }
-    ],
+    services: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Services',
+        required: false
+    }],
     total: {
         type: Schema.Types.Decimal128,
         required: true
@@ -35,7 +35,7 @@ const InvoiceSchema = Schema({
         enum: ['PAID', 'PENDING'],
         default: 'PENDING'
     },
-    status:{
+    status: {
         type: Boolean,
         default: true
     },
@@ -43,7 +43,7 @@ const InvoiceSchema = Schema({
         type: Date,
         default: Date.now
     }
-}, 
+},
     {
         timestamps: true,
         versionKey: false
