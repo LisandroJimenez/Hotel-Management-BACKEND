@@ -19,10 +19,15 @@ const reservationSchema = Schema({
         ref: 'User',
         required: true
     },
+    services: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Services',
+        required:false
+    }],
     status: {
         type: Boolean,
         default: true
-    }
+    },
 },
     {
         timestamps: true,

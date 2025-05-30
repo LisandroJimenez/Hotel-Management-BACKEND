@@ -3,16 +3,19 @@ import Services from '../Services/services.model.js';
 
 export const generateInvoice = async (req, res) => {
     try {
-        const { serviceIds = [] } = req.body; // ← ahora son solo IDs
         const { reservation, room, hotel, days } = req;
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
 
-        // Buscar los servicios reales desde la BD
-        const services = await Services.find({ _id: { $in: serviceIds }, status: true });
+        // Cargar los servicios referenciados en la reservación
+        await reservation.populate('services');
 
-        const servicesTotal = services.reduce((sum, service) => sum + parseFloat(service.price.toString()), 0);
+        const servicesTotal = reservation.services.reduce(
+            (sum, service) => sum + parseFloat(service.price.toString()), 
+            0
+        );
+
         const total = roomTotal + servicesTotal;
 
         const invoice = new Invoice({
@@ -20,7 +23,7 @@ export const generateInvoice = async (req, res) => {
             user: reservation.user._id,
             hotel: hotel._id,
             room: room._id,
-            services,
+            services: reservation.services.map(s => s._id), // Guardamos los IDs
             total,
             statusInvoice: 'PENDING'
         });
@@ -29,18 +32,19 @@ export const generateInvoice = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            msg: 'Invoice generated successfully',
+            msg: 'Factura generada correctamente',
             invoice
         });
 
     } catch (error) {
         res.status(500).json({
             success: false,
-            msg: 'Error generating invoice',
+            msg: 'Error al generar la factura',
             error: error.message
         });
     }
 };
+
 
 
 export const paidInvoice = async (req, res) => {
