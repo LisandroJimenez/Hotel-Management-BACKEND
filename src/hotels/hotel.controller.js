@@ -55,8 +55,8 @@ export const getHotel = async (req, res) => {
 
         const hotelsWithRooms = await Promise.all(
             hotels.map(async (hotel) => {
-                const rooms = await Room.find({ hotel: hotel._id })
-                    .select('numberRoom capacity price images');
+                const rooms = await Room.find({ hotel: hotel._id, status: true })
+                    .select('numberRoom capacity price images status');
 
                 return {
                     ...hotel.toObject(),
@@ -65,24 +65,22 @@ export const getHotel = async (req, res) => {
             })
         );
 
-
         return res.status(200).json({
             success: true,
             msg: "Hotels found successfully",
             total,
             hotels: hotelsWithRooms
-
         });
 
     } catch (error) {
         return res.status(500).json({
             success: false,
-
             msg: "Error getting hotels",
             error: error.message || error
         });
     }
 };
+
 
 
 export const updateHotel = async (req, res) => { 
@@ -190,44 +188,38 @@ export const getHotelesMasReservados = async (req, res) => {
         res.status(500).json({ success: false, msg: 'Error en estadística', error: error.message });
     }
 };
-export const getHotelById = async (req, res) => {
+
+export const getHotelById = async (req, res) => { 
     try {
         const { id } = req.params;
-
-        const hotel = await Hotel.findById(id);
+        const hotel = await Hotel.findById(id).lean(); 
 
         if (!hotel) {
             return res.status(404).json({
                 success: false,
-                msg: "Hotel not found with the provided ID."
+                msg: "Hotel no encontrado."
             });
         }
 
-        const rooms = await Room.find({ hotel: hotel._id })
-            .select('numberRoom capacity price images');
-
+        const rooms = await Room.find({ hotel: id }) 
+            .select('numberRoom capacity price images status amenities');
         const hotelWithRooms = {
-            ...hotel.toObject(),
+            ...hotel,
             rooms
         };
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            msg: "Hotel details fetched successfully",
-            hotel: hotelWithRooms
+            msg: "Hotel encontrado exitosamente",
+            hotel: hotelWithRooms 
         });
 
     } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                msg: "Invalid Hotel ID format."
-            });
-        }
+        console.error("Error en getHotelById del controlador de hoteles:", error);
         return res.status(500).json({
             success: false,
-            msg: "Error fetching hotel details from the server.",
-            error: error.message
+            msg: "Error interno del servidor al obtener los detalles del hotel.",
+            error: error.message || error
         });
     }
 };

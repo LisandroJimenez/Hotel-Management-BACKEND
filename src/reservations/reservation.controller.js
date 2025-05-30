@@ -192,15 +192,11 @@ export const updateReservation = async (req, res) => {
 export const ReservationsToday = async (req, res) => {
     try {
         const now = new Date();
-
-        // Inicio del mes (día 1 a las 00:00:00)
         const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
-
-        // Fin del mes (último día del mes a las 23:59:59.999)
         const endOfMonth = new Date(Date.UTC(
             now.getUTCFullYear(),
-            now.getUTCMonth() + 1, // mes siguiente
-            0, // día 0 del mes siguiente = último día del mes actual
+            now.getUTCMonth() + 1,
+            0,
             23, 59, 59, 999
         ));
 
@@ -267,6 +263,40 @@ export const getMonthlyStats = async (req, res) => {
             success: false,
             message: "Error obteniendo reservaciones por mes",
             error: error.message
+        });
+    }
+};
+
+export const getMyReservations = async (req, res) => {
+    const { limit, desde } = req.query;
+    const userId = req.usuario._id;
+    const isAdmin = req.usuario.role === 'ADMIN_ROLE';
+    const query = { status: true };
+    if (!isAdmin) {
+        query.user = userId;
+    }
+
+    try {
+        const reservations = await Reservation.find(query)
+            .skip(Number(desde))
+            .limit(Number(limit))
+            .populate({ path: 'room', select: 'numberRoom images' })
+            .populate({ path: 'user', select: 'email' })
+            .populate({ path: 'services', select: 'name price' });
+
+        const total = await Reservation.countDocuments(query);
+
+        res.status(200).json({
+            success: true,
+            total,
+            reservations
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            msg: "Error getting reservations",
+            error
         });
     }
 };

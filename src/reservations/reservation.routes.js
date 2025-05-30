@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { check } from "express-validator";
 import { validateFields } from "../middlewares/validate-fields.js";
-import { saveReservation, getReservation, deleteReservation, updateReservation, ReservationsToday,getMonthlyStats} from "./reservation.controller.js";
+import { saveReservation, getReservation, deleteReservation, getMyReservations, updateReservation, ReservationsToday,getMonthlyStats} from "./reservation.controller.js";
 import { existReservationById } from "../helpers/db-validator.js";
 import { validateJWT } from "../middlewares/validate-jwt.js";
 
@@ -42,6 +42,14 @@ router.delete(
         validateFields
     ],
     deleteReservation
+)
+
+router.get(
+    "/mine",
+    [
+        validateJWT
+    ],
+    getMyReservations
 )
 
 export default router;

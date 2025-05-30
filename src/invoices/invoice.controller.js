@@ -8,21 +8,13 @@ export const generateInvoice = async (req, res) => {
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
-
-        // Los servicios en bruto (IDs con repeticiones)
         const rawServiceIds = reservation.services.map(id => id.toString());
-
-        // Contar cuántas veces se repite cada servicio
         const serviceCountMap = {};
         for (const id of rawServiceIds) {
             serviceCountMap[id] = (serviceCountMap[id] || 0) + 1;
         }
-
-        // Cargar los servicios únicos desde la base
         const uniqueIds = Object.keys(serviceCountMap);
         const serviceDocs = await Services.find({ _id: { $in: uniqueIds } });
-
-        // Calcular el total con repeticiones
         let servicesTotal = 0;
         for (const service of serviceDocs) {
             const count = serviceCountMap[service._id.toString()];
@@ -36,7 +28,7 @@ export const generateInvoice = async (req, res) => {
             user: reservation.user._id,
             hotel: hotel._id,
             room: room._id,
-            services: rawServiceIds, // mantiene los repetidos si lo necesitas
+            services: rawServiceIds, 
             total,
             statusInvoice: 'PENDING'
         });
@@ -86,37 +78,42 @@ export const paidInvoice = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
     try {
-
-        const { userId, statusInvoice } = req.query; // Filtros opcionales
-
-        const filter = {};
-        if (userId) filter.user = userId;
-        if (statusInvoice) filter.statusInvoice = statusInvoice;
-
-        const invoices = await Invoice.find(filter)
-            .populate('reservation', 'initDate endDate')
-            .populate('user', 'name email')
+        const userId = req.usuario._id;
+        const isAdmin = req.usuario.role === 'ADMIN_ROLE';
+        const allInvoices = await Invoice.find()
+            .populate({
+                path: 'reservation',
+                select: 'user initDate endDate',
+                populate: {
+                    path: 'user',
+                    select: 'name email'
+                }
+            })
             .populate('hotel', 'name')
-            .populate('room', 'name price')
+            .populate('room', 'name price');
 
-        const total = invoices.length;
+        let filteredInvoices = allInvoices;
+        if (!isAdmin) {
+            filteredInvoices = allInvoices.filter(invoice =>
+                invoice.reservation?.user?._id?.toString() === userId.toString()
+            );
+        }
 
         res.status(200).json({
             success: true,
-            msg: 'Invoices get successfully',
-            total,
-            invoices
-
-        })
+            msg: 'Invoices fetched successfully',
+            total: filteredInvoices.length,
+            invoices: filteredInvoices
+        });
 
     } catch (error) {
         res.status(500).json({
             success: false,
             msg: 'Error getting invoices',
             error: error.message
-        })
+        });
     }
-}
+};
 
 
 export const getTotalIncome = async (req, res) => {

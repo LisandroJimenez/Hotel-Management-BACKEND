@@ -137,9 +137,9 @@ export const getUserProfile = (req, res) => {
 
 export const getInvoicesByUser = async (req, res) => {
     try {
-        
-        const userId = req.usuario._id; 
-        
+
+        const userId = req.usuario._id;
+
         const invoices = await Invoice.find({ user: userId })
             .populate('reservation', 'initDate endDate')
             .populate('hotel', 'name')
@@ -163,7 +163,7 @@ export const getInvoicesByUser = async (req, res) => {
 }
 export const getUserCount = async (req, res) => {
     try {
-        const count = await User.countDocuments({ status: true }); // Solo los activos
+        const count = await User.countDocuments({ status: true }); 
 
         res.status(200).json({
             success: true,
