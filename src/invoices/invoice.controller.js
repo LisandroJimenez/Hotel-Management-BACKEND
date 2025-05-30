@@ -86,34 +86,42 @@ export const paidInvoice = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
     try {
+        const userId = req.usuario._id;
+        const isAdmin = req.usuario.role === 'ADMIN_ROLE';
 
-        const { userId, statusInvoice } = req.query; // Filtros opcionales
-
-        const filter = {};
-        if (userId) filter.user = userId;
-        if (statusInvoice) filter.statusInvoice = statusInvoice;
-
-        const invoices = await Invoice.find(filter)
-            .populate('reservation', 'initDate endDate')
-            .populate('user', 'name email')
+        // Obtenemos todas las facturas con sus relaciones
+        const allInvoices = await Invoice.find()
+            .populate({
+                path: 'reservation',
+                select: 'user initDate endDate',
+                populate: {
+                    path: 'user',
+                    select: 'name email'
+                }
+            })
             .populate('hotel', 'name')
-            .populate('room', 'name price')
+            .populate('room', 'name price');
 
-        const total = invoices.length;
+        // Si es admin, devolvemos todo
+        let filteredInvoices = allInvoices;
+        if (!isAdmin) {
+            filteredInvoices = allInvoices.filter(invoice =>
+                invoice.reservation?.user?._id?.toString() === userId.toString()
+            );
+        }
 
         res.status(200).json({
             success: true,
-            msg: 'Invoices get successfully',
-            total,
-            invoices
-
-        })
+            msg: 'Invoices fetched successfully',
+            total: filteredInvoices.length,
+            invoices: filteredInvoices
+        });
 
     } catch (error) {
         res.status(500).json({
             success: false,
             msg: 'Error getting invoices',
             error: error.message
-        })
+        });
     }
-}
+};
