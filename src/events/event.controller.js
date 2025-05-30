@@ -125,3 +125,58 @@ export const deleteEvent = async (req, res) => {
     }
 }
 
+export const getEventsTreemap = async (req, res) => {
+  try {
+    const aggregation = await Event.aggregate([
+      { $match: { status: true } }, // solo eventos activos
+
+      // Agrupar por tipo y estado y contar cantidad
+      {
+        $group: {
+          _id: { type: "$type", state: "$state" },
+          count: { $sum: 1 }
+        }
+      },
+
+      // Agrupar por tipo para armar hijos con estados y conteos
+      {
+        $group: {
+          _id: "$_id.type",
+          children: {
+            $push: {
+              name: "$_id.state",
+              value: "$count"
+            }
+          }
+        }
+      },
+
+      // Dar formato final para el treemap
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          children: 1
+        }
+      }
+    ]);
+
+    // Formar la raíz
+    const treemap = {
+      name: "Eventos",
+      children: aggregation
+    };
+
+    res.status(200).json({
+      success: true,
+      msg: "Treemap data generated",
+      data: treemap
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error generating treemap data",
+      error: error.message
+    });
+  }
+};
