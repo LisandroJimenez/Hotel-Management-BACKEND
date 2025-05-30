@@ -81,8 +81,7 @@ export const deleteUser = async (req, res) => {
         res.status(200).json({
             success: true,
             msg: 'User disabled',
-            user,
-            authenticatedUser
+            user
         });
     } catch (error) {
         res.status(500).json({

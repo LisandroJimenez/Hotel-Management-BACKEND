@@ -30,6 +30,7 @@ router.put(
         validateAdmin,
         check("id", "Not a valid ID").isMongoId(),
         check("id").custom(existHotelById),
+        uploadHotelImages.array('images'),
         validateFields
     ],
     updateHotel

@@ -3,34 +3,34 @@ import Room from "../rooms/room.model.js";
 import Reservation from "../reservations/reservation.model.js"
 
 export const saveHotel = async (req, res) => {
-  try {
-    const data = req.body;
-    const images = req.files ? req.files.map(file => `/uploads/hotels/${file.filename}`) : [];
+    try {
+        const data = req.body;
+        const images = req.files ? req.files.map(file => `/uploads/hotels/${file.filename}`) : [];
 
-    const hotel = new Hotel({
-      ...data,
-      images  
-    });
+        const hotel = new Hotel({
+            ...data,
+            images
+        });
 
-    await hotel.save();
+        await hotel.save();
 
-    res.status(200).json({
-      success: true,
-      msg: "Hotel added successfully",
-      hotel
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      msg: "Error saving hotel"
-    });
-  }
+        res.status(200).json({
+            success: true,
+            msg: "Hotel added successfully",
+            hotel
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            msg: "Error saving hotel"
+        });
+    }
 };
 
 
 export const getHotel = async (req, res) => {
     try {
-        const { limite = 10, desde = 0, name, category, address } = req.query;
+        const { limite, desde, name, category, address } = req.query;
 
         const filters = { status: true };
 
@@ -85,35 +85,44 @@ export const getHotel = async (req, res) => {
 };
 
 
-export const updateHotel = async (req, res = response) => {
+export const updateHotel = async (req, res) => { 
     try {
-
         const { id } = req.params;
-        const { _id, ...data } = req.body;
+        const { _id, ...restOfBody } = req.body; 
+        const hotelToUpdate = await Hotel.findById(id);
 
-        const hotel = await Hotel.findByIdAndUpdate(id, data, { new: true });
-
-        if (!hotel) {
+        if (!hotelToUpdate) {
             return res.status(404).json({
                 success: false,
-                msg: "Hotel not found"
+                msg: "Hotel no encontrado"
             });
         }
 
+        const updateFields = { ...restOfBody }; 
+
+        if (req.files && req.files.length > 0) {
+            const newImageUrls = req.files.map(file => `/uploads/hotels/${file.filename}`);
+
+            updateFields.images = newImageUrls;
+        }
+     
+        const updatedHotel = await Hotel.findByIdAndUpdate(id, updateFields, { new: true });
+
         res.status(200).json({
             success: true,
-            msg: 'Updating hotel',
-            hotel
-        })
+            msg: 'Hotel actualizado correctamente',
+            hotel: updatedHotel 
+        });
+
     } catch (error) {
+        console.error("Error al actualizar hotel:", error); 
         res.status(500).json({
             success: false,
-            msg: 'Error updating hotel',
-            error: error.message
-        })
+            msg: 'Error al actualizar hotel',
+            error: error.message || error
+        });
     }
 }
-
 export const deleteHotel = async (req, res) => {
     try {
         const { id } = req.params;

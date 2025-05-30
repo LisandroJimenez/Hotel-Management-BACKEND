@@ -56,8 +56,8 @@ export const getReservation = async (req, res) => {
         const reservations = await Reservation.find(query)
             .skip(Number(desde))
             .limit(Number(limit))
-            .populate({path: 'room', select: 'numberRoom images'})
-            .populate({ path: 'user', select: 'email' }); 
+            .populate({path: 'room', select: 'numberRoom images '})
+            .populate({ path: 'user', select: 'name email phone' }); 
 
         const total = await Reservation.countDocuments(query);
 
