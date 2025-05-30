@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { check } from "express-validator";
 import { validateFields } from "../middlewares/validate-fields.js";
-import { saveReservation, getReservation, deleteReservation, updateReservation } from "./reservation.controller.js";
+import { saveReservation, getReservation, deleteReservation, updateReservation, ReservationsToday,getMonthlyStats} from "./reservation.controller.js";
 import { existReservationById } from "../helpers/db-validator.js";
 import { validateJWT } from "../middlewares/validate-jwt.js";
 
@@ -17,6 +17,10 @@ router.post(
 )
 
 router.get("/", getReservation)
+
+router.get("/today", ReservationsToday)
+
+router.get("/Stats", getMonthlyStats)
 
 router.put(
     "/:id",

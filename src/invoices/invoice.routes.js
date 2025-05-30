@@ -4,7 +4,7 @@ import { validateJWT } from '../middlewares/validate-jwt.js';
 import { hasRole } from '../middlewares/validate-role.js';
 import { validateInvoiceData } from '../middlewares/validate-invoice-data.js';
 import { validateInvoice } from '../middlewares/validate-invoice.js';
-import { generateInvoice, paidInvoice, getInvoices } from './invoice.controller.js';
+import { generateInvoice, paidInvoice, getInvoices, getTotalIncome, getMontlyIncome} from './invoice.controller.js';
 
 const router = Router();
 
@@ -36,6 +36,16 @@ router.get(
         hasRole('ADMIN_ROLE', 'EMPLOYEE_ROLE')
     ],
     getInvoices
+)
+
+router.get(
+    '/income',
+    getTotalIncome
+)
+
+router.get(
+    '/moonthlyincome',
+    getMontlyIncome
 )
 
 export default router;

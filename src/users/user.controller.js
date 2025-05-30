@@ -161,3 +161,19 @@ export const getInvoicesByUser = async (req, res) => {
         })
     }
 }
+export const getUserCount = async (req, res) => {
+    try {
+        const count = await User.countDocuments({ status: true }); // Solo los activos
+
+        res.status(200).json({
+            success: true,
+            totalUsers: count
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            msg: 'Error al contar usuarios',
+            error: error.message
+        });
+    }
+};

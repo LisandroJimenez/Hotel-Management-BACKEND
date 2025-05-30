@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { check } from "express-validator";
-import { deleteUser, getUsers, updateUser, getUserProfile, getInvoicesByUser } from "./user.controller.js";
+import { deleteUser, getUsers, updateUser, getUserProfile, getInvoicesByUser, getUserCount } from "./user.controller.js";
 import { getUsuariosPorMes } from "./user.controller.js";
 import { existUserById } from "../helpers/db-validator.js";
 import { validateFields } from "../middlewares/validate-fields.js";
@@ -46,6 +46,7 @@ router.get(
     ],
     getInvoicesByUser
 )
+router.get("/usercount", getUserCount)
 
 router.get(
     '/profile',
