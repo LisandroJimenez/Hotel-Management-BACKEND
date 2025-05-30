@@ -28,7 +28,7 @@ export const saveReservation = async (req, res) => {
         // Validar servicios si se proporcionan
         let serviceIds = [];
         if (services && Array.isArray(services) && services.length > 0) {
-            // Extraer los IDs de los servicios del array de objetos
+            // Extraer los IDs de los servicios del array de objetos o strings
             serviceIds = services.map(service => {
                 if (typeof service === 'object' && service.service) {
                     return service.service;
@@ -38,15 +38,15 @@ export const saveReservation = async (req, res) => {
                 return null;
             }).filter(id => id !== null);
 
-            // Verificar que todos los servicios existen
-            if (serviceIds.length > 0) {
-                const servicesDocs = await Service.find({ _id: { $in: serviceIds } });
-                if (servicesDocs.length !== serviceIds.length) {
-                    return res.status(404).json({
-                        success: false,
-                        msg: 'One or more services not found'
-                    });
-                }
+            // Validar los servicios (solo los distintos)
+            const uniqueServiceIds = [...new Set(serviceIds)];
+
+            const servicesDocs = await Service.find({ _id: { $in: uniqueServiceIds } });
+            if (servicesDocs.length !== uniqueServiceIds.length) {
+                return res.status(404).json({
+                    success: false,
+                    msg: 'One or more services not found'
+                });
             }
         }
 
@@ -55,7 +55,7 @@ export const saveReservation = async (req, res) => {
             ...data,
             room,
             user,
-            services: serviceIds // Solo los IDs de los servicios
+            services: serviceIds // ← se guardan tal cual, incluso si hay repetidos
         });
 
         await reservation.save();
@@ -71,6 +71,7 @@ export const saveReservation = async (req, res) => {
             msg: 'Reservation added successfully',
             reservation: populatedReservation
         });
+
     } catch (error) {
         console.error('Error saving reservation:', error);
         res.status(500).json({
@@ -82,6 +83,7 @@ export const saveReservation = async (req, res) => {
 };
 
 
+
 export const getReservation = async (req, res) => {
     const { limit = 10, desde = 0 } = req.query;
     const query = { status: true };
@@ -91,7 +93,7 @@ export const getReservation = async (req, res) => {
             .skip(Number(desde))
             .limit(Number(limit))
             .populate({ path: 'room', select: 'numberRoom images' })
-            .populate({ path: 'user', select: 'name email phone' })
+            .populate({ path: 'user', select: 'email' })
             .populate({ path: 'services', select: 'name price' });
 
         const total = await Reservation.countDocuments(query);

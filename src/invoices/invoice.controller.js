@@ -4,39 +4,40 @@ import mongoose from 'mongoose';
 
 export const generateInvoice = async (req, res) => {
     try {
-        const { reservation, room, hotel } = req;
-
-        // Calcular días entre fechas
-        const start = new Date(reservation.initDate);
-        const end = new Date(reservation.endDate);
-        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        const { reservation, room, hotel, days } = req;
 
         const roomPrice = parseFloat(room.price.toString());
         const roomTotal = roomPrice * days;
 
-        // Cargar los servicios
-        await reservation.populate('services');
+        // Los servicios en bruto (IDs con repeticiones)
+        const rawServiceIds = reservation.services.map(id => id.toString());
 
-        const servicesTotal = reservation.services.reduce(
-            (sum, service) => sum + parseFloat(service.price.toString()), 
-            0
-        );
+        // Contar cuántas veces se repite cada servicio
+        const serviceCountMap = {};
+        for (const id of rawServiceIds) {
+            serviceCountMap[id] = (serviceCountMap[id] || 0) + 1;
+        }
+
+        // Cargar los servicios únicos desde la base
+        const uniqueIds = Object.keys(serviceCountMap);
+        const serviceDocs = await Services.find({ _id: { $in: uniqueIds } });
+
+        // Calcular el total con repeticiones
+        let servicesTotal = 0;
+        for (const service of serviceDocs) {
+            const count = serviceCountMap[service._id.toString()];
+            servicesTotal += parseFloat(service.price.toString()) * count;
+        }
 
         const total = roomTotal + servicesTotal;
-
-        // Paso 4: repetir los ObjectId según la cantidad
-        const expandedServices = [];
-        for (const id of serviceIds) {
-            expandedServices.push(new mongoose.Types.ObjectId(id));
-        }
 
         const invoice = new Invoice({
             reservation: reservation._id,
             user: reservation.user._id,
             hotel: hotel._id,
             room: room._id,
-            services: reservation.services.map(s => s._id),
-            total: mongoose.Types.Decimal128.fromString(total.toFixed(2)), // ← aquí el cambio importante
+            services: rawServiceIds, // mantiene los repetidos si lo necesitas
+            total,
             statusInvoice: 'PENDING'
         });
 
@@ -49,6 +50,7 @@ export const generateInvoice = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('Error al generar la factura:', error);
         res.status(500).json({
             success: false,
             msg: 'Error al generar la factura',
