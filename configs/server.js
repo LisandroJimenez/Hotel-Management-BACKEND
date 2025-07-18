@@ -20,7 +20,12 @@ import path from 'path'
 const middlewares = (app) => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
-    app.use(cors());
+    app.use(cors({
+        origin: [
+            'http://localhost:5173', // Tu frontend local (Vite)
+        ],
+        credentials: true // Habilita cookies/sesiones si las usás
+    }));
     // Modifica la configuración de Helmet aquí
     app.use(helmet({
         crossOriginEmbedderPolicy: false, // <-- Añade esta línea
