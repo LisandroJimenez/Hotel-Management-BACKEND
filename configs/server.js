@@ -21,30 +21,20 @@ const middlewares = (app) => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
 
-    const allowedOrigins = ['*'];
-
     app.use(cors({
-        origin: function(origin, callback) {
-            if (!origin) return callback(null, true);
-            if (allowedOrigins.indexOf(origin) === -1) {
-                return callback(new Error('Not allowed by CORS'), false);
-            }
-            return callback(null, true);
-        },
+        origin: true, 
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
     }));
 
-    app.options('*', cors({
-        origin: allowedOrigins,
-        credentials: true,
-    }));
+    app.options('*', cors());
 
     app.use(helmet({
         crossOriginEmbedderPolicy: false,
         crossOriginResourcePolicy: { policy: 'cross-origin' }
     }));
+
     app.use(morgan('dev'));
     app.use(limiter);
     app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
