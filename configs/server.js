@@ -18,26 +18,31 @@ import { createRoles } from '../src/role/role.controller.js'
 import path from 'path'
 
 const middlewares = (app) => {
-    app.use(express.urlencoded({ extended: false }));
-    app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(express.json());
 
-    app.use(cors({
-        origin: true, 
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-    }));
+  app.use(cors({
+    origin: true, 
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'x-token'
+    ]
+  }));
 
-    app.options('*', cors());
+  app.options('*', cors());
 
-    app.use(helmet({
-        crossOriginEmbedderPolicy: false,
-        crossOriginResourcePolicy: { policy: 'cross-origin' }
-    }));
+  app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  }));
 
-    app.use(morgan('dev'));
-    app.use(limiter);
-    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  app.use(morgan('dev'));
+  app.use(limiter);
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 };
 
 const routes = (app) => {
