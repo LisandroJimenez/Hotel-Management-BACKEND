@@ -20,22 +20,35 @@ import path from 'path'
 const middlewares = (app) => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
+
+    const allowedOrigins = ['*'];
+
     app.use(cors({
-        origin: [
-            'http://localhost:5173', // Tu frontend local (Vite)
-        ],
-        credentials: true // Habilita cookies/sesiones si las usás
+        origin: function(origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.indexOf(origin) === -1) {
+                return callback(new Error('Not allowed by CORS'), false);
+            }
+            return callback(null, true);
+        },
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
     }));
-    // Modifica la configuración de Helmet aquí
+
+    app.options('*', cors({
+        origin: allowedOrigins,
+        credentials: true,
+    }));
+
     app.use(helmet({
-        crossOriginEmbedderPolicy: false, // <-- Añade esta línea
-        // También podrías necesitar esto si tienes problemas con las imágenes de perfil o similares
+        crossOriginEmbedderPolicy: false,
         crossOriginResourcePolicy: { policy: 'cross-origin' }
     }));
     app.use(morgan('dev'));
-    app.use(limiter); // Asegúrate de que esto sea un punto y coma, no una coma
+    app.use(limiter);
     app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-}
+};
 
 const routes = (app) => {
     app.use('/HotelManagement/v1/auth', authRoutes);
